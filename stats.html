@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    
+    <title>MeroTrack - الإحصائيات والتقارير</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { --primary-color: #2563eb; --bg-color: #f1f5f9; --text-main: #1e293b; --text-muted: #64748b; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 40px; }
+        
+        .header-title { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 25px 0; margin-bottom: 25px; border-radius: 0 0 30px 30px; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2); }
+        .card { border-radius: 20px; border: none; box-shadow: 0 6px 20px rgba(0,0,0,0.03); margin-bottom: 20px; background: #ffffff; overflow: hidden; }
+        .form-control, .form-select { border-radius: 12px; border: 1px solid #cbd5e1; padding: 10px 15px; background-color: #f8fafc; font-size: 0.9rem; font-weight: 600; }
+        .form-control:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.1); background-color: #fff; }
+        .btn { border-radius: 12px; font-weight: 700; padding: 8px 16px; transition: all 0.2s; }
+        
+        /* Collapsible Elements */
+        .collapsible-header { cursor: pointer; user-select: none; transition: background-color 0.2s; border-radius: 20px; }
+        .collapsible-header:hover { background-color: #f8fafc !important; }
+        .chevron-icon { transition: transform 0.3s ease; color: #94a3b8; font-size: 1.2rem; }
+        .chevron-icon.rotated { transform: rotate(180deg); }
+        .collapse-content { transition: all 0.3s ease; }
+        
+        /* KPI Cards */
+        .kpi-card { background: white; border-radius: 16px; padding: 18px 10px; text-align: center; border: 1px solid #f1f5f9; border-top: 5px solid #3b82f6; height: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .kpi-value { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-top: 8px; }
+        .kpi-label { font-size: 0.8rem; color: #64748b; font-weight: 700; }
+        
+        /* Tables */
+        .table th { background-color: #f8fafc; color: #475569; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #e2e8f0; }
+        .table td { vertical-align: middle; font-size: 0.85rem; color: #334155; font-weight: 600; }
+        
+        /* شريط التمرير الأنيق (Scrollbar) للجداول والرسوم البيانية */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .card { box-shadow: none; border: 1px solid #e2e8f0; }
+            .collapse-content { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-title text-center">
+        <h4 class="mb-1 fw-bold"><i class="bi bi-bar-chart-fill"></i> تقارير وإحصائيات الميروبينيم</h4>
+        <p class="mb-0 fs-7 opacity-75 fw-semibold">مؤشرات الأداء وتحليل استهلاك العينات والأطباء</p>
+    </div>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <a href="index.html" class="btn btn-outline-secondary bg-white shadow-sm border-0">
+                <i class="bi bi-arrow-right me-1"></i> العودة للسجل
+            </a>
+            <button class="btn btn-success shadow-sm" onclick="window.print()">
+                <i class="bi bi-printer-fill me-1"></i> طباعة / حفظ PDF
+            </button>
+        </div>
+
+        <div class="card p-4 no-print">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label fs-7 fw-bold text-muted mb-1">نوع التقرير:</label>
+                    <select id="reportType" class="form-select" onchange="toggleReportInputs()">
+                        <option value="monthly">شهري 📅</option>
+                        <option value="yearly">سنوي 📆</option>
+                    </select>
+                </div>
+                <div class="col-8 col-md-5" id="monthlyInputContainer">
+                    <label class="form-label fs-7 fw-bold text-muted mb-1">اختر الشهر والسنة:</label>
+                    <input type="month" id="reportMonth" class="form-control">
+                </div>
+                <div class="col-8 col-md-5 d-none" id="yearlyInputContainer">
+                    <label class="form-label fs-7 fw-bold text-muted mb-1">اختر السنة:</label>
+                    <select id="reportYear" class="form-select"></select>
+                </div>
+                <div class="col-4 col-md-3">
+                    <button class="btn btn-primary w-100 py-2" onclick="loadAnalytics()">تحديث البيانات</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center collapsible-header" onclick="toggleSection('summaryContent', 'summaryChevron')">
+                <h6 class="mb-0 text-primary fw-bold fs-5"><i class="bi bi-speedometer2 me-2"></i> ملخص الإحصائيات العامة</h6>
+                <i class="bi bi-chevron-down chevron-icon" id="summaryChevron"></i>
+            </div>
+            <div id="summaryContent" class="collapse-content card-body p-4 border-top border-light">
+                <div class="row g-3">
+                    <div class="col-6 col-md">
+                        <div class="kpi-card" style="border-top-color: #3b82f6;">
+                            <div class="kpi-label">إجمالي الطلبات</div>
+                            <div class="kpi-value text-primary" id="totalOrders">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="kpi-card" style="border-top-color: #10b981;">
+                            <div class="kpi-label">المؤكدة / المرسلة ✅</div>
+                            <div class="kpi-value text-success" id="confirmedCount">0 <span class="fs-7 text-muted" id="confirmedPercent">(0%)</span></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="kpi-card" style="border-top-color: #f43f5e;">
+                            <div class="kpi-label">المنفية ❌</div>
+                            <div class="kpi-value text-danger" id="rejectedCount">0 <span class="fs-7 text-muted" id="rejectedPercent">(0%)</span></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="kpi-card" style="border-top-color: #f59e0b;">
+                            <div class="kpi-label">بانتظار الإرسال ⏳</div>
+                            <div class="kpi-value text-warning" id="pendingCount">0 <span class="fs-7 text-muted" id="pendingPercent">(0%)</span></div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md">
+                        <div class="kpi-card" style="border-top-color: #64748b;">
+                            <div class="kpi-label">رفض الطبيب 🚫</div>
+                            <div class="kpi-value text-secondary" id="docRefusedCount">0 <span class="fs-7 text-muted" id="docRefusedPercent">(0%)</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center collapsible-header" onclick="toggleSection('chartsContent', 'chartsChevron')">
+                <h6 class="mb-0 text-primary fw-bold fs-5"><i class="bi bi-pie-chart-fill me-2"></i> التوزيع والرسوم البيانية</h6>
+                <i class="bi bi-chevron-down chevron-icon" id="chartsChevron"></i>
+            </div>
+            <div id="chartsContent" class="collapse-content card-body p-4 border-top border-light">
+                <div class="row g-4">
+                    <div class="col-12 col-md-4">
+                        <div class="card p-3 text-center h-100 border shadow-sm">
+                            <h6 class="text-muted fw-bold mb-3 fs-7">توزيع نسب الحالات</h6>
+                            <div style="height: 250px; display: flex; justify-content: center;">
+                                <canvas id="statusPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card p-3 text-center h-100 border shadow-sm">
+                            <h6 class="text-muted fw-bold mb-3 fs-7">أكثر الأطباء طالباً للميروبينيم</h6>
+                            <div style="height: 250px; overflow-y: auto; overflow-x: hidden; padding-left: 5px;" dir="ltr">
+                                <div id="docsChartWrapper" dir="rtl" style="height: 250px; position: relative;">
+                                    <canvas id="doctorsBarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card p-3 text-center h-100 border shadow-sm">
+                            <h6 class="text-muted fw-bold mb-3 fs-7">الطلبات حسب الردهات</h6>
+                            <div style="height: 250px; overflow-y: auto; overflow-x: hidden; padding-left: 5px;" dir="ltr">
+                                <div id="wardsChartWrapper" dir="rtl" style="height: 250px; position: relative;">
+                                    <canvas id="wardsBarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center collapsible-header" onclick="toggleSection('docRefusalContent', 'docRefusalChevron')">
+                <h6 class="mb-0 text-danger fw-bold fs-5"><i class="bi bi-slash-circle-fill me-2"></i> النسب المئوية لحالات رفض ارسال عينة للزرع</h6>
+                <i class="bi bi-chevron-down chevron-icon" id="docRefusalChevron"></i>
+            </div>
+            <div id="docRefusalContent" class="collapse-content card-body p-0 border-top border-light">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light fs-7">
+                            <tr>
+                                <th class="px-4 py-3">اسم الطبيب المعالج</th>
+                                <th class="text-center py-3">حالات رفض ارسال عينة</th>
+                                <th class="text-center py-3">إجمالي طلبات الطبيب</th>
+                                <th class="text-center py-3">نسبة الرفض المئوية 📊</th>
+                            </tr>
+                        </thead>
+                        <tbody id="doctorsRefusalBody" class="fs-7">
+                            <tr><td colspan="4" class="text-center text-muted py-4 fw-bold">جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center collapsible-header" onclick="toggleSection('docCombinedContent', 'docCombinedChevron')">
+                <h6 class="mb-0 text-dark fw-bold fs-5"><i class="bi bi-journal-x me-2"></i> إجمالي الطلبات (بدون عينات زرع) المنفية + المرفوضة 📊</h6>
+                <i class="bi bi-chevron-down chevron-icon" id="docCombinedChevron"></i>
+            </div>
+            <div id="docCombinedContent" class="collapse-content card-body p-0 border-top border-light">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light fs-7">
+                            <tr>
+                                <th class="px-4 py-3">اسم الطبيب المعالج</th>
+                                <th class="text-center py-3">منفية ❌</th>
+                                <th class="text-center py-3">مرفوضة 🚫</th>
+                                <th class="text-center py-3">المجموع بدون عينة</th>
+                                <th class="text-center py-3">إجمالي الطلبات</th>
+                                <th class="text-center py-3">النسبة الكلية 📊</th>
+                            </tr>
+                        </thead>
+                        <tbody id="doctorsCombinedBody" class="fs-7">
+                            <tr><td colspan="6" class="text-center text-muted py-4 fw-bold">جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqm16V1ESpEbZZ8SJA8GTzFdtbexrPwaE",
+            authDomain: "meropenem-app.firebaseapp.com",
+            projectId: "meropenem-app",
+            storageBucket: "meropenem-app.firebasestorage.app",
+            messagingSenderId: "387581088853",
+            appId: "1:387581088853:web:2a4e1a37c8372bf20af0dc"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const ordersRef = collection(db, "meropenem_orders");
+
+        let allData = [];
+        let pieChartInstance = null;
+        let wardsChartInstance = null;
+        let doctorsChartInstance = null;
+
+        const now = new Date();
+        const currentYearMonth = now.toISOString().slice(0, 7);
+        const currentYear = now.getFullYear().toString();
+
+        document.getElementById('reportMonth').value = currentYearMonth;
+        
+        const yearSelect = document.getElementById('reportYear');
+        for (let y = 2024; y <= 2035; y++) {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.innerText = y;
+            if (y.toString() === currentYear) opt.selected = true;
+            yearSelect.appendChild(opt);
+        }
+
+        window.toggleSection = (contentId, chevronId) => {
+            const content = document.getElementById(contentId);
+            const chevron = document.getElementById(chevronId);
+            if (content.classList.contains('d-none')) {
+                content.classList.remove('d-none');
+                chevron.classList.remove('rotated');
+            } else {
+                content.classList.add('d-none');
+                chevron.classList.add('rotated');
+            }
+        };
+
+        window.toggleReportInputs = () => {
+            const type = document.getElementById('reportType').value;
+            if (type === 'monthly') {
+                document.getElementById('monthlyInputContainer').classList.remove('d-none');
+                document.getElementById('yearlyInputContainer').classList.add('d-none');
+            } else {
+                document.getElementById('monthlyInputContainer').classList.add('d-none');
+                document.getElementById('yearlyInputContainer').classList.remove('d-none');
+            }
+            loadAnalytics();
+        };
+
+        async function fetchAllData() {
+            try {
+                const q = query(ordersRef, orderBy("createdAt", "desc"));
+                const snapshot = await getDocs(q);
+                allData = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!data.isDeleted) allData.push(data);
+                });
+                loadAnalytics();
+            } catch (err) { console.error(err); }
+        }
+
+        window.loadAnalytics = () => {
+            const reportType = document.getElementById('reportType').value;
+            let filteredOrders = [];
+
+            if (reportType === 'monthly') {
+                const selectedMonth = document.getElementById('reportMonth').value;
+                if (!selectedMonth) return;
+                filteredOrders = allData.filter(o => o.orderDate && o.orderDate.startsWith(selectedMonth));
+            } else {
+                const selectedYear = document.getElementById('reportYear').value;
+                if (!selectedYear) return;
+                filteredOrders = allData.filter(o => o.orderDate && o.orderDate.startsWith(selectedYear));
+            }
+
+            const total = filteredOrders.length;
+            const confirmed = filteredOrders.filter(o => o.status === 'confirmed').length;
+            const rejected = filteredOrders.filter(o => o.status === 'rejected').length;
+            const pending = filteredOrders.filter(o => o.status === 'pending').length;
+            const docRefused = filteredOrders.filter(o => o.status === 'doctor_refused').length;
+
+            document.getElementById('totalOrders').innerText = total;
+            document.getElementById('confirmedCount').innerHTML = `${confirmed} <span class="fs-7 text-muted">(${total ? Math.round((confirmed/total)*100) : 0}%)</span>`;
+            document.getElementById('rejectedCount').innerHTML = `${rejected} <span class="fs-7 text-muted">(${total ? Math.round((rejected/total)*100) : 0}%)</span>`;
+            document.getElementById('pendingCount').innerHTML = `${pending} <span class="fs-7 text-muted">(${total ? Math.round((pending/total)*100) : 0}%)</span>`;
+            document.getElementById('docRefusedCount').innerHTML = `${docRefused} <span class="fs-7 text-muted">(${total ? Math.round((docRefused/total)*100) : 0}%)</span>`;
+
+            const wardsCount = {}; const doctorsCount = {};
+            const doctorsRefusedCount = {}; const doctorsRejectedCount = {};
+
+            filteredOrders.forEach(o => {
+                const w = o.ward ? o.ward.trim() : 'أخرى';
+                wardsCount[w] = (wardsCount[w] || 0) + 1;
+                const docName = o.doctorName ? o.doctorName.trim() : 'غير محدد';
+                doctorsCount[docName] = (doctorsCount[docName] || 0) + 1;
+
+                if (o.status === 'doctor_refused') doctorsRefusedCount[docName] = (doctorsRefusedCount[docName] || 0) + 1;
+                if (o.status === 'rejected') doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1;
+            });
+
+            updateCharts(confirmed, rejected, pending, docRefused, wardsCount, doctorsCount);
+            renderRefusalTable(doctorsCount, doctorsRefusedCount);
+            renderCombinedTable(doctorsCount, doctorsRejectedCount, doctorsRefusedCount);
+        };
+
+        function renderRefusalTable(doctorsTotal, doctorsRefused) {
+            const tbody = document.getElementById('doctorsRefusalBody');
+            const docList = Object.keys(doctorsTotal);
+            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>'; return; }
+            docList.sort((a, b) => (doctorsRefused[b] || 0) - (doctorsRefused[a] || 0));
+
+            tbody.innerHTML = docList.map(docName => {
+                const total = doctorsTotal[docName] || 0;
+                const refused = doctorsRefused[docName] || 0;
+                const ratio = total ? Math.round((refused / total) * 100) : 0;
+                let badgeColor = ratio > 50 ? 'bg-danger' : ratio > 20 ? 'bg-warning text-dark' : 'bg-success';
+
+                return `<tr>
+                    <td class="px-4"><strong>د. ${docName}</strong></td>
+                    <td class="text-center text-danger fw-bold">${refused}</td>
+                    <td class="text-center">${total}</td>
+                    <td class="text-center"><span class="badge ${badgeColor} px-2 py-1 rounded-pill">${ratio}%</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderCombinedTable(doctorsTotal, doctorsRejected, doctorsRefused) {
+            const tbody = document.getElementById('doctorsCombinedBody');
+            const docList = Object.keys(doctorsTotal);
+            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>'; return; }
+            
+            docList.sort((a, b) => ((doctorsRejected[b] || 0) + (doctorsRefused[b] || 0)) - ((doctorsRejected[a] || 0) + (doctorsRefused[a] || 0)));
+
+            tbody.innerHTML = docList.map(docName => {
+                const total = doctorsTotal[docName] || 0;
+                const rejected = doctorsRejected[docName] || 0;
+                const refused = doctorsRefused[docName] || 0;
+                const combined = rejected + refused;
+                const ratio = total ? Math.round((combined / total) * 100) : 0;
+                let badgeColor = ratio > 50 ? 'bg-danger' : ratio > 20 ? 'bg-warning text-dark' : 'bg-success';
+
+                return `<tr>
+                    <td class="px-4"><strong>د. ${docName}</strong></td>
+                    <td class="text-center text-danger fw-bold">${rejected}</td>
+                    <td class="text-center text-secondary fw-bold">${refused}</td>
+                    <td class="text-center text-dark fw-bold fs-6">${combined}</td>
+                    <td class="text-center">${total}</td>
+                    <td class="text-center"><span class="badge ${badgeColor} px-2 py-1 rounded-pill">${ratio}%</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateCharts(confirmed, rejected, pending, docRefused, wardsCount, doctorsCount) {
+            // الدائري
+            const pieCtx = document.getElementById('statusPieChart').getContext('2d');
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['مؤكدة ✅', 'منفية ❌', 'معلقة ⏳', 'رفض الطبيب 🚫'],
+                    datasets: [{ data: [confirmed, rejected, pending, docRefused], backgroundColor: ['#10b981', '#f43f5e', '#f59e0b', '#64748b'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } } }
+            });
+
+            // تجهيز البيانات والمتغيرات للرسم الأفقي (الردهات)
+            const wardsKeys = Object.keys(wardsCount).length ? Object.keys(wardsCount) : ['لا يوجد'];
+            const wardsValues = Object.values(wardsCount).length ? Object.values(wardsCount) : [0];
+            const wardsTotal = wardsValues.reduce((a, b) => a + b, 0);
+            
+            // ضبط ارتفاع الحاوية ديناميكياً لتناسب أعداد الردهات
+            const wardsHeight = Math.max(250, wardsKeys.length * 40);
+            document.getElementById('wardsChartWrapper').style.height = wardsHeight + 'px';
+
+            const wardsCtx = document.getElementById('wardsBarChart').getContext('2d');
+            if (wardsChartInstance) wardsChartInstance.destroy();
+            wardsChartInstance = new Chart(wardsCtx, {
+                type: 'bar',
+                data: {
+                    labels: wardsKeys,
+                    datasets: [{ label: 'الطلبات', data: wardsValues, backgroundColor: '#3b82f6', borderRadius: 4 }]
+                },
+                options: { 
+                    indexAxis: 'y', // قلب الرسم بياني ليكون أفقي
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { // إظهار النسبة المئوية في النافذة المنبثقة
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.raw;
+                                    let perc = wardsTotal > 0 ? Math.round((val / wardsTotal) * 100) : 0;
+                                    return ` ${val} طلب (${perc}%)`;
+                                }
+                            },
+                            titleFont: { family: 'Cairo' }, bodyFont: { family: 'Cairo' }
+                        }
+                    }, 
+                    scales: { 
+                        x: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Cairo' } } }, 
+                        y: { ticks: { font: { family: 'Cairo' }, autoSkip: false } } 
+                    } 
+                }
+            });
+
+            // تجهيز البيانات والمتغيرات للرسم الأفقي (الأطباء)
+            const docsKeys = Object.keys(doctorsCount).length ? Object.keys(doctorsCount) : ['لا يوجد'];
+            const docsValues = Object.values(doctorsCount).length ? Object.values(doctorsCount) : [0];
+            const docsTotal = docsValues.reduce((a, b) => a + b, 0);
+
+            // ضبط ارتفاع الحاوية ديناميكياً لتناسب أعداد الأطباء
+            const docsHeight = Math.max(250, docsKeys.length * 40);
+            document.getElementById('docsChartWrapper').style.height = docsHeight + 'px';
+
+            const docsCtx = document.getElementById('doctorsBarChart').getContext('2d');
+            if (doctorsChartInstance) doctorsChartInstance.destroy();
+            doctorsChartInstance = new Chart(docsCtx, {
+                type: 'bar',
+                data: {
+                    labels: docsKeys,
+                    datasets: [{ label: 'الطلبات', data: docsValues, backgroundColor: '#14b8a6', borderRadius: 4 }]
+                },
+                options: { 
+                    indexAxis: 'y', // قلب الرسم بياني ليكون أفقي
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { // إظهار النسبة المئوية في النافذة المنبثقة
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.raw;
+                                    let perc = docsTotal > 0 ? Math.round((val / docsTotal) * 100) : 0;
+                                    return ` ${val} طلب (${perc}%)`;
+                                }
+                            },
+                            titleFont: { family: 'Cairo' }, bodyFont: { family: 'Cairo' }
+                        }
+                    }, 
+                    scales: { 
+                        x: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Cairo' } } }, 
+                        y: { ticks: { font: { family: 'Cairo' }, autoSkip: false } } 
+                    } 
+                }
+            });
+        }
+
+        fetchAllData();
+    </script>
+</body>
+</html>

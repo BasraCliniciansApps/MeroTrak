@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>MeroTrak</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MeroTrak">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063823.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 20px; }
+        
+        .app-header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 15px 20px; border-radius: 0 0 25px 25px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; }
+        .app-header h5 { margin: 0; font-weight: 800; font-size: 1.2rem; }
+        
+        .top-nav { background: white; border-radius: 16px; padding: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; gap: 8px; margin-bottom: 20px; }
+        .nav-item { flex: 1; text-align: center; padding: 10px 5px; color: #64748b; font-weight: 700; font-size: 0.85rem; border-radius: 12px; text-decoration: none; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item.active { background: #eff6ff; color: var(--primary); }
+
+        .card { border-radius: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: #ffffff; margin-bottom: 20px; max-width: 100%; }
+        .form-control, .form-select { border-radius: 12px; border: 1px solid #cbd5e1; padding: 10px 15px; font-size: 0.9rem; font-weight: 600; background-color: #f8fafc; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); background-color: #fff; }
+        .form-label { font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px; }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .order-card-compact { background: white; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid #e2e8f0; border-right: 5px solid #94a3b8; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .order-card-compact.border-success-custom { border-right-color: #10b981; }
+        .order-card-compact.border-danger-custom { border-right-color: #f43f5e; }
+        .order-card-compact.border-warning-custom { border-right-color: #f59e0b; }
+        
+        .icon-btn { cursor: pointer; transition: 0.2s; font-size: 1.1rem; padding: 4px; }
+        .icon-btn:hover { transform: scale(1.1); }
+        .modal-content { border-radius: 24px; border: none; }
+
+        .collapsible-header { cursor: pointer; user-select: none; transition: background-color 0.2s; border-radius: 20px; }
+        .collapsible-header:hover { background-color: #f8fafc !important; }
+        .chevron-icon { transition: transform 0.3s ease; color: #94a3b8; font-size: 1.2rem; }
+        .chevron-icon.rotated { transform: rotate(180deg); }
+        .collapse-content { transition: all 0.3s ease; }
+        
+        .kpi-card { background: white; border-radius: 16px; padding: 18px 10px; text-align: center; border: 1px solid #f1f5f9; border-top: 5px solid #3b82f6; height: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .kpi-value { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-top: 8px; }
+        .kpi-label { font-size: 0.8rem; color: #64748b; font-weight: 700; }
+        
+        .table th { background-color: #f8fafc; color: #475569; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #e2e8f0; }
+        .table td { vertical-align: middle; font-size: 0.85rem; color: #334155; font-weight: 600; }
+        
+        .locked-overlay { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 40px 20px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .locked-overlay:hover { background: #e2e8f0; border-color: #94a3b8; }
+        
+        .action-buttons { display: flex; gap: 10px; align-items: center; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        @media print { .no-print { display: none !important; } .collapse-content { display: block !important; } .locked-overlay { display: none !important; } }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-shield-plus fs-3"></i>
+            <div><h5 class="mb-0">MeroTrak</h5></div>
+        </div>
+        <div class="d-flex gap-2">
+            <i class="bi bi-info-circle-fill fs-4 icon-btn text-white" onclick="window.showAppInfo()" title="عن النظام"></i>
+            <i class="bi bi-gear-fill fs-4 icon-btn text-white" onclick="window.openSettings()" title="الإعدادات"></i>
+            <i class="bi bi-cloud-arrow-down-fill fs-4 icon-btn text-white" onclick="window.showInstallInstructions()" title="تثبيت التطبيق"></i>
+        </div>
+    </header>
+    <div class="container mt-3">
+        <nav class="top-nav no-print">
+            <a href="javascript:void(0)" class="nav-item active" onclick="window.switchTab('tab-main', this)"><i class="bi bi-ui-checks"></i><span>الطلبات والسجل</span></a>
+            <a href="javascript:void(0)" class="nav-item" onclick="window.switchTab('tab-lab', this)"><i class="bi bi-virus"></i><span>قائمة المختبر</span></a>
+            <a href="javascript:void(0)" class="nav-item" onclick="window.switchTab('tab-stats', this)"><i class="bi bi-bar-chart-fill"></i><span>الإحصائيات</span></a>
+        </nav>
+        
+        <div id="tab-main" class="tab-content active no-print">
+            <div class="card p-4 border-top border-primary border-4">
+                <h6 class="text-primary mb-3 fw-bold"><i class="bi bi-plus-circle-fill me-1"></i> تقديم طلب ميروبينيم</h6>
+                <form id="legacyForm" class="row g-3">
+                    <div class="col-12 col-md-4"><label class="form-label">اسم المريض</label><input type="text" id="l_patientName" class="form-control" required></div>
+                    <div class="col-12 col-md-4"><label class="form-label">الطبيب المسؤول</label><input type="text" id="l_doctorName" class="form-control" required></div>
+                 
+                    <div class="col-6 col-md-2">
+                        <label class="form-label">الردهة / القسم</label>
+                        <select id="l_ward" class="form-select" required></select>
+                    </div>
+                    <div class="col-6 col-md-2"><label class="form-label">تاريخ الطلب</label><input type="date" id="l_orderDate" class="form-control" required></div>
+                    
+                    <div class="col-12">
+                        <div class="bg-light p-3 rounded-3 border mt-2">
+                            <label class="form-label fw-bold text-dark mb-2"><i class="bi bi-droplet-half text-primary me-1"></i> حالة إرسال عينة الزرع:</label>
+                            <select id="l_sampleStatus" class="form-select border-primary" onchange="window.toggleAddSampleStatus()" required>
+                                <option value="" disabled selected>اختر حالة العينة...</option>
+                                <option value="sent_before">أُرسلت العينة (قبل) البدء بالمضادات الحيوية</option>
+                                <option value="sent_after">أُرسلت العينة (بعد) البدء بالمضادات الحيوية</option>
+                                <option value="sent_unknown">أُرسلت العينة لكن لا أعلم إن كان قبل أو بعد البدء بالمضادات</option>
+                                <option value="not_sent">لم يتم إرسال عينة زرع</option>
+                            </select>
+                            
+                            <div id="addReasonsBlock" class="d-none mt-3 p-3 bg-white rounded border border-danger">
+                                <label class="form-label fw-bold text-danger fs-7">لم يتم ارسال عينة للزرع للاسباب التالية:</label>
+                                <select id="l_noSampleReason" class="form-select" onchange="window.toggleAddReasonDetails()">
+                                    <option value="" disabled selected>اختر السبب...</option>
+                                    <option value="doctor_refused">رفض الطبيب ارسال عينة زرع</option>
+                                    <option value="no_tools">عدم توفر الادوات اللازمة لجمع او زرع العينة</option>
+                                    <option value="no_service">عدم توفر خدمة زرع العينات</option>
+                                    <option value="other">أخرى...</option>
+                                </select>
+                                 
+                                <div id="addToolsBlock" class="d-none mt-3">
+                                    <label class="form-label fs-7 fw-bold text-muted">نوع العينة (اكتب النوع المفقود):</label>
+                                    <input type="text" id="l_sampleType" class="form-control" placeholder="مثل: مسحة جرح، إدرار، دم...">
+                                </div>
+                                 
+                                <div id="addServiceBlock" class="d-none mt-3">
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label fs-7 fw-bold text-muted">الخدمة غير متوفرة خلال:</label>
+                                            <select id="l_serviceTiming" class="form-select">
+                                                <option value="خلال الدوام الرسمي">خلال الدوام الرسمي</option>
+                                                <option value="بعد الدوام الرسمي">بعد الدوام الرسمي</option>
+                                                <option value="عطلة">عطلة</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label fs-7 fw-bold text-muted">حدد وقت طلب عمل الزرع (بالساعات):</label>
+                                            <input type="time" id="l_serviceTime" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="addOtherBlock" class="d-none mt-3">
+                                    <label class="form-label fs-7 fw-bold text-muted">السبب (يرجى التوضيح):</label>
+                                    <input type="text" id="l_otherReason" class="form-control" placeholder="اكتب سبب عدم إرسال العينة هنا...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-3"><button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="bi bi-send-fill me-1"></i> إرسال الطلب</button></div>
+                </form>
+            </div>
+            
+            <div class="card p-3 mb-4 bg-light border">
+                <div class="d-flex justify-content-between align-items-center collapsible-header m-0 p-0" onclick="window.toggleSection('filterCollapseContent', 'filterChevron')">
+                    <h6 class="text-secondary mb-0 fw-bold fs-7"><i class="bi bi-search me-1"></i> أدوات البحث والتصفية المتقدمة</h6>
+                    <i class="bi bi-chevron-down chevron-icon rotated" id="filterChevron"></i>
+                </div>
+                <div id="filterCollapseContent" class="collapse-content d-none mt-3 pt-3 border-top">
+                    <div class="row g-2">
+                        <div class="col-12 col-md-6"><input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث بالاسم أو الطبيب..."></div>
+                        <div class="col-12 col-md-6">
+                            <select id="wardFilter" class="form-select form-select-sm"></select>
+                        </div>
+                        <div class="col-6"><input type="date" id="startDateFilter" class="form-control form-control-sm"></div>
+                        <div class="col-6"><input type="date" id="endDateFilter" class="form-control form-control-sm"></div>
+                        <div class="col-12 text-end"><button class="btn btn-outline-secondary btn-sm fw-bold w-100 bg-white" onclick="window.resetFilters()">مسح الفلاتر</button></div>
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-card-list me-1"></i> السجل الشامل (تظهر طلبات اليوم الحالي)</h6>
+            <div id="ordersContainer"><div class="text-center text-muted py-4">جاري التحميل...</div></div>
+        </div>
+        
+        <div id="tab-lab" class="tab-content no-print">
+            <div id="lab-login-section" class="text-center mt-5">
+                <i class="bi bi-shield-lock text-primary" style="font-size: 4rem;"></i>
+                <h5 class="fw-bold mt-3 mb-4">تسجيل دخول المختبر</h5>
+                <button class="btn btn-primary fw-bold px-5 py-2 rounded-pill" onclick="window.loginLab()"><i class="bi bi-box-arrow-in-right me-1"></i> دخول</button>
+            </div>
+            <div id="lab-dashboard-section" class="d-none">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 card p-3 border shadow-sm gap-2">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-virus text-primary me-1"></i> قائمة المختبر</h5>
+                    <div class="action-buttons">
+                        <button class="btn btn-light border text-dark fw-bold rounded-pill shadow-sm" onclick="window.changeLabPasscode()"><i class="bi bi-key-fill text-warning"></i> الرمز السري</button>
+                        <button class="btn btn-danger fw-bold rounded-pill shadow-sm" onclick="window.logoutLab()"><i class="bi bi-box-arrow-left"></i> خروج</button>
+                    </div>
+                </div>
+                <div class="alert alert-info py-2 fs-7 fw-bold">
+                    <i class="bi bi-info-circle-fill me-1"></i> ملاحظة: الطلبات المُسجلة كـ (لم يتم إرسال عينة) تم تحويلها للسجل مباشرة ولن تظهر في هذه القائمة لعدم الحاجة لإجراء مختبري عليها.
+                </div>
+                <div id="labInboxContainer"></div>
+            </div>
+        </div>
+
+        <div id="tab-stats" class="tab-content">
+            <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+                <h5 class="fw-bold text-primary mb-0"><i class="bi bi-bar-chart-fill me-2"></i>الإحصائيات الشاملة</h5>
+                <button class="btn btn-success btn-sm shadow-sm fw-bold" onclick="window.print()">
+                    <i class="bi bi-printer-fill me-1"></i> طباعة التقرير
+                </button>
+            </div>
+
+            <div class="card p-3 mb-4 no-print border-top border-primary border-4">
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fs-7 fw-bold text-muted mb-1">نوع التقرير:</label>
+                        <select id="reportType" class="form-select" onchange="window.toggleReportInputs()">
+                            <option value="monthly">شهري 📅</option>
+                            <option value="yearly">سنوي 📆</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-5" id="monthlyInputContainer">
+                        <label class="form-label fs-7 fw-bold text-muted mb-1">اختر الشهر والسنة:</label>
+                        <input type="month" id="reportMonth" class="form-control" onchange="window.loadAnalytics()">
+                    </div>
+                    <div class="col-12 col-md-5 d-none" id="yearlyInputContainer">
+                        <label class="form-label fs-7 fw-bold text-muted mb-1">اختر السنة:</label>
+                        <select id="reportYear" class="form-select" onchange="window.loadAnalytics()"></select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <button class="btn btn-primary w-100 py-2" onclick="window.loadAnalytics()"><i class="bi bi-arrow-clockwise me-1"></i> تحديث</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center collapsible-header" onclick="window.toggleSection('summaryContent', 'summaryChevron')">
+                    <h6 class="mb-0 text-primary fw-bold fs-6"><i class="bi bi-speedometer2 me-2"></i> ملخص الإحصائيات العامة (متاح للجميع)</h6>
+                    <i class="bi bi-chevron-down chevron-icon" id="summaryChevron"></i>
+                </div>
+                <div id="summaryContent" class="collapse-content card-body p-3 border-top border-light">
+                    <div class="row g-2 mb-4">
+                        <div class="col-6 col-md">
+                            <div class="kpi-card" style="border-top-color: #3b82f6;">
+                                <div class="kpi-label">إجمالي الطلبات</div>
+                                <div class="kpi-value text-primary" id="totalOrders">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md">
+                            <div class="kpi-card" style="border-top-color: #10b981;">
+                                <div class="kpi-label">إستُلمت العينة ✅</div>
+                                <div class="kpi-value text-success" id="confirmedCount">0 <span class="fs-7 text-muted"></span></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md">
+                            <div class="kpi-card" style="border-top-color: #f43f5e;">
+                                <div class="kpi-label">لم تُستلم العينة ❌</div>
+                                <div class="kpi-value text-danger" id="rejectedCount">0 <span class="fs-7 text-muted"></span></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md">
+                            <div class="kpi-card" style="border-top-color: #f59e0b;">
+                                <div class="kpi-label">بانتظار الوصول ⏳</div>
+                                <div class="kpi-value text-warning" id="pendingCount">0 <span class="fs-7 text-muted"></span></div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md">
+                            <div class="kpi-card" style="border-top-color: #64748b;">
+                                <div class="kpi-label">لم ترسل العينة 🚫</div>
+                                <div class="kpi-value text-secondary" id="docRefusedCount">0 <span class="fs-7 text-muted"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="card p-3 text-center h-100 border shadow-sm">
+                                <h6 class="text-muted fw-bold mb-3 fs-7">توزيع نسب استلام العينات</h6>
+                                <div style="height: 250px; display: flex; justify-content: center;">
+                                    <canvas id="statusPieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="card p-3 text-center h-100 border shadow-sm">
+                                <h6 class="text-muted fw-bold mb-3 fs-7">أسباب عدم إرسال العينة 🚫</h6>
+                                <div style="height: 250px; display: flex; justify-content: center;">
+                                    <canvas id="reasonsPieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="card p-3 text-center h-100 border shadow-sm">
+                                <h6 class="text-muted fw-bold mb-3 fs-7">توقيت إرسال العينات (مقارنة) ⏱️</h6>
+                                <div style="height: 250px; display: flex; justify-content: center;">
+                                    <canvas id="timingPieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="card p-3 text-center h-100 border shadow-sm">
+                                <h6 class="text-muted fw-bold mb-3 fs-7">الطلبات حسب الردهات</h6>
+                                <div style="height: 250px; overflow-y: auto; overflow-x: hidden; padding-left: 5px;" dir="ltr">
+                                    <div id="wardsChartWrapper" dir="rtl" style="height: 250px; position: relative;">
+                                        <canvas id="wardsBarChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminLockedView" class="locked-overlay no-print" onclick="window.unlockAdminStats()">
+                <i class="bi bi-shield-lock-fill text-secondary" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mt-3 text-dark">إحصائيات خاصة بالإدارة</h5>
+                <p class="text-muted fs-7">اضغط هنا لإدخال كلمة مرور الإدارة</p>
+            </div>
+
+            <div id="adminUnlockedView" class="d-none">
+                <div class="card border-danger border-2 mt-4 shadow-sm">
+                    <div class="card-header bg-danger bg-opacity-10 p-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <h6 class="mb-0 text-danger fw-bold fs-5"><i class="bi bi-unlock-fill me-2"></i> قسم الإدارة (سري)</h6>
+                        <div class="action-buttons">
+                            <button class="btn btn-light border text-dark fw-bold rounded-pill shadow-sm" onclick="window.changeAdminPasscode()"><i class="bi bi-key-fill text-secondary"></i> تغيير كلمة مرور الإدارة</button>
+                            <button class="btn btn-danger fw-bold rounded-pill shadow-sm" onclick="window.lockAdminStats()"><i class="bi bi-lock-fill"></i> قفل</button>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="card p-3 text-center border shadow-sm mb-4">
+                            <h6 class="text-muted fw-bold mb-3 fs-7">الأطباء الأكثر طلباً للميروبينيم</h6>
+                            <div style="height: 300px; overflow-y: auto; overflow-x: hidden; padding-left: 5px;" dir="ltr">
+                                <div id="docsChartWrapper" dir="rtl" style="height: 300px; position: relative;">
+                                    <canvas id="doctorsBarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-6">
+                                <div class="card p-3 text-center h-100 border shadow-sm">
+                                    <h6 class="text-danger fw-bold mb-3 fs-7">تحليل أوقات انقطاع/عدم توفر خدمة الزرع ⏱️</h6>
+                                    <div style="height: 250px; display: flex; justify-content: center;">
+                                        <canvas id="serviceTimingChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="card p-3 text-center h-100 border shadow-sm">
+                                    <h6 class="text-danger fw-bold mb-3 fs-7">تحليل أنواع الأدوات والعيّنات المفقودة 🧪</h6>
+                                    <div style="height: 250px; display: flex; justify-content: center;">
+                                        <canvas id="missingToolsChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border shadow-sm mb-4">
+                            <div class="card-header bg-white p-3">
+                                <h6 class="mb-0 text-danger fw-bold fs-6"><i class="bi bi-slash-circle-fill me-2"></i> نسبة رفض ارسال العينات من قبل الاطباء 🚫</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light fs-7">
+                                            <tr>
+                                                <th class="px-4 py-2">اسم الطبيب</th>
+                                                <th class="text-center py-2">حالات (رفض الطبيب إرسال عينة)</th>
+                                                <th class="text-center py-2">إجمالي طلبات الطبيب</th>
+                                                <th class="text-center py-2">النسبة 📊</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="doctorsRefusalBody" class="fs-7"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border shadow-sm">
+                            <div class="card-header bg-white p-3">
+                                <h6 class="mb-0 text-dark fw-bold fs-6"><i class="bi bi-journal-x me-2"></i> نسبة الغياب الكلي للارسال (لم تُستلم + لم تُرسل) 📊</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light fs-7">
+                                            <tr>
+                                                <th class="px-4 py-2">اسم الطبيب</th>
+                                                <th class="text-center py-2">لم تُستلم ❌</th>
+                                                <th class="text-center py-2">لم تُرسل 🚫</th>
+                                                <th class="text-center py-2">المجموع</th>
+                                                <th class="text-center py-2">الإجمالي</th>
+                                                <th class="text-center py-2">النسبة الكلية 📊</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="doctorsCombinedBody" class="fs-7"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="customPromptModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-4"><div class="mb-3 text-primary fs-1"><i class="bi bi-shield-lock"></i></div><h6 id="promptTitle" class="fw-bold mb-2"></h6><p id="promptText" class="text-muted fs-7 mb-3"></p><input type="password" id="promptInput" class="form-control text-center mb-3 fw-bold" dir="auto"><div class="d-flex gap-2"><button class="btn btn-light w-50 fw-bold border" id="promptCancelBtn">إلغاء</button><button class="btn btn-primary w-50 fw-bold" id="promptConfirmBtn">تأكيد</button></div></div></div></div></div>
+    
+    <div class="modal fade" id="customAlertModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-4"><div id="alertIcon" class="mb-3 fs-1"></div><h6 id="alertTitle" class="fw-bold mb-2"></h6><p id="alertText" class="text-muted fs-7 mb-4"></p><button class="btn w-100 fw-bold" id="alertOkBtn" data-bs-dismiss="modal">موافق</button></div></div></div></div>
+    
+    <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-4"><div class="mb-3 fs-1 text-danger"><i class="bi bi-exclamation-triangle-fill"></i></div><h6 id="confirmTitle" class="fw-bold mb-2"></h6><p id="confirmText" class="text-muted fs-7 mb-4"></p><div class="d-flex gap-2"><button class="btn btn-light w-50 fw-bold border" id="confirmCancelBtn" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-danger w-50 fw-bold" id="confirmOkBtn">نعم</button></div></div></div></div></div>
+
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0 bg-light rounded-top-4 pt-3">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-info-circle-fill me-1"></i> عن النظام (MeroTrak)</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3 fs-1 text-primary"><i class="bi bi-shield-plus"></i></div>
+                    <p class="text-muted fs-7 mb-3 lh-lg text-end">نظام إلكتروني صُمم بشكل أساسي لتتبع ومراقبة حالة <strong>إرسال عينات الزرع المصاحب لصرف</strong> مضاد الميروبينيم (Meropenem)، لضمان تطبيق البروتوكولات الطبية الصحيحة والحد من الاستخدام العشوائي للمضادات الحيوية، بالإضافة إلى توفير قاعدة إحصائية دقيقة <strong>لمتابعة تطبيق</strong> البروتوكولات ودعم القرار الطبي.</p>
+                    <div class="bg-light p-3 rounded-4 border text-center mt-3">
+                        <span class="fs-8 text-muted d-block mb-1">إعداد وتصميم</span>
+                        <h6 class="fw-bold text-dark fs-7 mb-0">الصيدلاني السريري / سعد الحمادي</h6>
+                        <span class="fs-8 text-secondary d-block mt-1">عضو لجنة المضادات الحيوية</span>
+                        <span class="fs-8 text-primary fw-bold d-block mt-1">مستشفى الموانئ التعليمي</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="installModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0 bg-light rounded-top-4 pt-3">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-phone-vibrate me-1"></i> تثبيت النظام كـ تطبيق</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-end p-4">
+                    <p class="text-muted fs-7 mb-4 text-center">أضف <strong>MeroTrak</strong> إلى شاشتك الرئيسية للوصول السريع والعمل كبرنامج مستقل.</p>
+                    
+                    <div class="card border-0 bg-light mb-3 p-3 shadow-sm rounded-4">
+                        <h6 class="fw-bold text-dark fs-7 mb-3"><i class="bi bi-apple fs-5 me-1"></i> أجهزة الآيفون (Safari):</h6>
+                        <ul class="list-unstyled mb-0 fs-7 text-muted lh-lg">
+                            <li><span class="badge bg-secondary rounded-circle me-1">1</span> اضغط على زر المشاركة <i class="bi bi-box-arrow-up text-primary fs-5"></i> أسفل الشاشة.</li>
+                            <li><span class="badge bg-secondary rounded-circle me-1">2</span> اسحب للأسفل واختر <strong>"إضافة للشاشة الرئيسية"</strong> <i class="bi bi-plus-square text-primary"></i>.</li>
+                        </ul>
+                    </div>
+
+                    <div class="card border-0 bg-light p-3 shadow-sm rounded-4">
+                        <h6 class="fw-bold text-dark fs-7 mb-3"><i class="bi bi-android2 text-success fs-5 me-1"></i> أجهزة الأندرويد (Chrome):</h6>
+                        <ul class="list-unstyled mb-0 fs-7 text-muted lh-lg">
+                            <li><span class="badge bg-secondary rounded-circle me-1">1</span> اضغط على خيارات القائمة <i class="bi bi-three-dots-vertical text-dark fs-5"></i> أعلى الشاشة.</li>
+                            <li><span class="badge bg-secondary rounded-circle me-1">2</span> اختر <strong>"تثبيت التطبيق" (Install app)</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <button class="btn btn-primary w-100 fw-bold mt-4" data-bs-dismiss="modal">فهمت ذلك، إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0 bg-light rounded-top-4 pt-3">
+                    <h6 class="modal-title fw-bold text-dark"><i class="bi bi-gear-fill text-primary me-1"></i> إعدادات النظام</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <h6 class="fw-bold fs-7 text-secondary mb-2"><i class="bi bi-file-earmark-excel-fill text-success me-1"></i> تصدير البيانات (Excel/CSV)</h6>
+                        <button class="btn btn-outline-success w-100 fw-bold btn-sm py-2" onclick="window.exportToExcel()">
+                            <i class="bi bi-download me-1"></i> تصدير جميع السجلات النشطة
+                        </button>
+                    </div>
+                    
+                    <hr class="text-muted opacity-25">
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold fs-7 text-secondary mb-2"><i class="bi bi-hospital-fill text-info me-1"></i> إدارة قائمة الردهات</h6>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="text" id="newWardInput" class="form-control form-control-sm" placeholder="اسم الردهة الجديدة...">
+                            <button class="btn btn-primary btn-sm fw-bold px-3" onclick="window.addNewWard()">إضافة</button>
+                        </div>
+                        <ul class="list-group list-group-flush border rounded-3 fs-7" id="settingsWardsList" style="max-height: 150px; overflow-y: auto;"></ul>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold fs-7 text-secondary mb-2"><i class="bi bi-key-fill text-warning me-1"></i> الحماية والأمان</h6>
+                        <button class="btn btn-light border w-100 fw-bold btn-sm py-2 text-dark" onclick="window.changeSettingsPasscode()">تغيير كلمة مرور الإعدادات</button>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <div class="mb-2">
+                        <h6 class="fw-bold fs-7 text-danger mb-2"><i class="bi bi-trash3-fill me-1"></i> إدارة السجلات (خطر)</h6>
+                        <button class="btn btn-danger w-100 fw-bold btn-sm py-2" onclick="window.archiveAllRecords()">أرشفة / تصفير جميع السجلات المعروضة</button>
+                        <span class="fs-8 text-muted d-block text-center mt-1">(لن تحذف نهائياً، بل ستختفي من الشاشات فقط)</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="legacyEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 py-3 bg-light rounded-top-4">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> تعديل بيانات الطلب</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <form id="legacyEditForm" class="row g-3">
+                        <input type="hidden" id="edit_l_id">
+                        <div class="col-12"><label class="form-label">اسم المريض</label><input type="text" id="edit_l_patient" class="form-control" required></div>
+                        <div class="col-12"><label class="form-label">الطبيب المسؤول</label><input type="text" id="edit_l_doctor" class="form-control" required></div>
+                        <div class="col-6">
+                            <label class="form-label">الردهة</label>
+                            <select id="edit_l_ward" class="form-select" required></select>
+                        </div>
+                        <div class="col-6"><label class="form-label">التاريخ</label><input type="date" id="edit_l_date" class="form-control" required></div>
+                        
+                        <div class="col-12">
+                            <div class="bg-light p-3 rounded-3 border mt-2">
+                                <label class="form-label fw-bold text-dark mb-2"><i class="bi bi-droplet-half text-primary me-1"></i> حالة إرسال عينة الزرع:</label>
+                                <select id="edit_l_sampleStatus" class="form-select border-primary" onchange="window.toggleEditSampleStatus()" required>
+                                    <option value="" disabled selected>اختر حالة العينة...</option>
+                                    <option value="sent_before">أُرسلت العينة (قبل) البدء بالمضادات الحيوية</option>
+                                    <option value="sent_after">أُرسلت العينة (بعد) البدء بالمضادات الحيوية</option>
+                                    <option value="sent_unknown">أُرسلت العينة لكن لا أعلم إن كان قبل أو بعد البدء بالمضادات</option>
+                                    <option value="not_sent">لم يتم إرسال عينة زرع</option>
+                                </select>
+                                
+                                <div id="editReasonsBlock" class="d-none mt-3 p-3 bg-white rounded border border-danger">
+                                    <label class="form-label fw-bold text-danger fs-7">السبب:</label>
+                                    <select id="edit_l_noSampleReason" class="form-select" onchange="window.toggleEditReasonDetails()">
+                                        <option value="" disabled selected>اختر السبب...</option>
+                                        <option value="doctor_refused">رفض الطبيب ارسال عينة زرع</option>
+                                        <option value="no_tools">عدم توفر الادوات اللازمة لجمع او زرع العينة</option>
+                                        <option value="no_service">عدم توفر خدمة زرع العينات</option>
+                                        <option value="other">أخرى...</option>
+                                    </select>
+                                    
+                                    <div id="editToolsBlock" class="d-none mt-3">
+                                        <label class="form-label fs-7 fw-bold text-muted">نوع العينة (اكتب النوع المفقود):</label>
+                                        <input type="text" id="edit_l_sampleType" class="form-control" placeholder="مثل: مسحة جرح، إدرار، دم...">
+                                    </div>
+                                    
+                                    <div id="editServiceBlock" class="d-none mt-3">
+                                        <div class="row g-2">
+                                            <div class="col-12 col-md-6">
+                                                <label class="form-label fs-7 fw-bold text-muted">الخدمة غير متوفرة خلال:</label>
+                                                <select id="edit_l_serviceTiming" class="form-select">
+                                                    <option value="خلال الدوام الرسمي">خلال الدوام الرسمي</option>
+                                                    <option value="بعد الدوام الرسمي">بعد الدوام الرسمي</option>
+                                                    <option value="عطلة">عطلة</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <label class="form-label fs-7 fw-bold text-muted">الوقت (بالساعات):</label>
+                                                <input type="time" id="edit_l_serviceTime" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="editOtherBlock" class="d-none mt-3">
+                                        <label class="form-label fs-7 fw-bold text-muted">السبب (يرجى التوضيح):</label>
+                                        <input type="text" id="edit_l_otherReason" class="form-control" placeholder="اكتب سبب عدم إرسال العينة هنا...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4 text-end"><button type="button" class="btn btn-light border fw-bold me-2" data-bs-dismiss="modal">إلغاء</button><button type="submit" class="btn btn-primary fw-bold px-4">حفظ</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="labStatusModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-header border-0 pb-0"><h6 class="modal-title fw-bold text-primary">حالة وصول العينة</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body pb-4 pt-3"><button class="btn btn-success w-100 fw-bold mb-2 py-2" onclick="window.applyLabStatus('confirmed')">إستُلمت العينة ✅</button><button class="btn btn-danger w-100 fw-bold py-2 mb-2" onclick="window.applyLabStatus('rejected')">لم تُستلم العينة ❌</button><button class="btn btn-warning text-dark w-100 fw-bold py-2" onclick="window.applyLabStatus('pending')">بانتظار الوصول ⏳</button></div></div></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, serverTimestamp, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgDh0aZ-mht93lBo_i5sN0j-rDgBcFj70",
+            authDomain: "merotrak.firebaseapp.com",
+            projectId: "merotrak",
+            storageBucket: "merotrak.firebasestorage.app",
+            messagingSenderId: "1073305094310",
+            appId: "1:1073305094310:web:c103679183ced7a1988c67",
+            measurementId: "G-DBLN15LFRX"
+        };
+        const app = initializeApp(firebaseConfig); 
+        const db = getFirestore(app); 
+        const auth = getAuth(app);
+
+        function getOrCreateDeviceId() {
+            let deviceId = localStorage.getItem('merotrak_device_id');
+            if (!deviceId) {
+                deviceId = 'dev_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem('merotrak_device_id', deviceId);
+            }
+            return deviceId;
+        }
+        const currentDeviceId = getOrCreateDeviceId();
+        
+        const ordersRef = collection(db, "meropenem_orders");
+        const settingsRef = doc(db, "settings", "lab_config");
+        
+        let labPasscode = "1234"; let systemAdminPass = "admin123"; let settingsPasscode = "414423";
+        let defaultWards = ['الأطفال', 'الإنعاش', 'الباطنية - رجال', 'الباطنية - نساء', 'الجراحة العامة - رجال', 'الجراحة العامة - نساء', 'الجناح الخاص - رجال', 'الجناح الخاص - نساء', 'الخدج الأولى', 'الخدج الثانية', 'العناية المركزة', 'النسائية - خاص', 'النسائية - عام', 'جملة عصبية - رجال', 'جملة عصبية - نساء', 'صالة الولادة', 'كسور - رجال', 'كسور - نساء'];
+        let wardsList = [];
+        let allOrders = [];
+        let activeActionId = null; let isLabLoggedIn = false; let isAdminUnlocked = false;
+        
+        let promptModal, alertModal, legacyEditModal, labStatusModal, confirmModal, installModal, infoModal, settingsModal;
+        let pieChartInstance, reasonsPieChartInstance, timingPieChartInstance, wardsChartInstance, doctorsChartInstance;
+        let serviceTimingChartInstance, missingToolsChartInstance;
+
+        promptModal = new bootstrap.Modal(document.getElementById('customPromptModal')); 
+        alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
+        legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal'));
+        labStatusModal = new bootstrap.Modal(document.getElementById('labStatusModal'));
+        confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+        installModal = new bootstrap.Modal(document.getElementById('installModal'));
+        infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
+        settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
+            if (!isStandalone && !localStorage.getItem('merotrak_install_shown')) {
+                setTimeout(() => { 
+                    installModal.show(); 
+                    localStorage.setItem('merotrak_install_shown', 'true'); 
+                }, 2000);
+            }
+        });
+
+        window.showInstallInstructions = () => { installModal.show(); };
+        window.showAppInfo = () => { infoModal.show(); };
+        
+        function getLocalDateString(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        document.getElementById('l_orderDate').value = getLocalDateString();
+        document.getElementById('reportMonth').value = new Date().toISOString().slice(0, 7);
+        const yearSelect = document.getElementById('reportYear');
+        const currentYear = new Date().getFullYear().toString();
+        for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option');
+            opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt);
+        }
+
+        async function ensureAnonymousUser() {
+            try {
+                if (auth.currentUser) return auth.currentUser;
+                const cred = await signInAnonymously(auth);
+                return cred.user;
+            } catch (err) { console.error("Auth Error:", err); throw err; }
+        }
+        ensureAnonymousUser().catch(e => console.log("Init auth info:", e.message));
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function renderWardsSelect() {
+            const createOptions = (withAll = false, disabledSelect = false) => {
+                let opts = disabledSelect ? `<option value="" selected disabled>اختر الردهة...</option>` : '';
+                if(withAll) opts += `<option value="">جميع الردهات</option>`;
+                wardsList.forEach(w => opts += `<option value="${w}">${w}</option>`);
+                return opts;
+            };
+            
+            let val1 = document.getElementById('l_ward').value; let val2 = document.getElementById('edit_l_ward').value; let val3 = document.getElementById('wardFilter').value;
+            document.getElementById('l_ward').innerHTML = createOptions(false, true); document.getElementById('edit_l_ward').innerHTML = createOptions(false, true); document.getElementById('wardFilter').innerHTML = createOptions(true, false);
+            if(wardsList.includes(val1)) document.getElementById('l_ward').value = val1; if(wardsList.includes(val2)) document.getElementById('edit_l_ward').value = val2; if(wardsList.includes(val3) || val3 === '') document.getElementById('wardFilter').value = val3;
+            
+            const settingsCont = document.getElementById('settingsWardsList');
+            if(settingsCont) {
+                settingsCont.innerHTML = wardsList.map((w, index) => 
+                    `<li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3 border-bottom bg-transparent">
+                        <span class="text-dark fw-bold">${escapeHTML(w)}</span>
+                        <i class="bi bi-x-lg text-danger icon-btn" onclick="window.deleteWard(${index})" title="حذف الردهة"></i>
+                    </li>`
+                ).join('');
+            }
+        }
+
+        window.addNewWard = async () => {
+            const input = document.getElementById('newWardInput'); const val = input.value.trim();
+            if(!val) return; if(wardsList.includes(val)) { showAlert('تنبيه', 'الردهة موجودة مسبقاً', false); return; }
+            wardsList.push(val); input.value = '';
+            await setDoc(settingsRef, { wards: wardsList }, { merge: true });
+            showAlert('نجاح', 'تم إضافة الردهة بنجاح!');
+        };
+
+        window.deleteWard = async (idx) => {
+            const confirmed = await askConfirm('حذف ردهة', `هل أنت متأكد من إزالة ردهة (${wardsList[idx]}) من القائمة؟`);
+            if(confirmed) { wardsList.splice(idx, 1); await setDoc(settingsRef, { wards: wardsList }, { merge: true }); }
+        };
+
+        window.openSettings = () => {
+            askPrompt('الإعدادات', 'أدخل كلمة مرور الإعدادات:').then(pass => {
+                if(pass !== settingsPasscode) { if(pass!==null) showAlert('مرفوض', 'كلمة المرور خاطئة', false); return; }
+                settingsModal.show();
+            });
+        };
+
+        window.changeSettingsPasscode = () => {
+            askPrompt('تغيير الرمز', 'أدخل الرمز الجديد للإعدادات:', 'text').then(async n => {
+                if(n) { await setDoc(settingsRef, { settingsPass: n.trim() }, { merge: true }); showAlert('نجاح', 'تم تغيير كلمة مرور الإعدادات!'); }
+            });
+        };
+
+        window.archiveAllRecords = async () => {
+            const confirmed = await askConfirm('أرشفة السجلات', 'هل أنت متأكد من تصفير وأرشفة جميع السجلات الحالية؟ (ستختفي من الشاشة ولكنها محفوظة بالخلفية)');
+            if(confirmed) {
+                const batch = writeBatch(db);
+                const activeOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm);
+                if(activeOrders.length === 0) { showAlert('تنبيه', 'لا توجد سجلات معروضة لتصفيرها.', false); return; }
+                activeOrders.forEach(o => { batch.update(doc(db, "meropenem_orders", o.id), { isDeleted: true }); });
+                try { await batch.commit(); showAlert('نجاح', 'تم تصفير وأرشفة السجلات بنجاح!'); settingsModal.hide(); } 
+                catch(e) { showAlert('خطأ', 'حدث خطأ أثناء الأرشفة.', false); }
+            }
+        };
+
+        window.exportToExcel = () => {
+            let csv = '\uFEFFاسم المريض,الطبيب المسؤول,الردهة,التاريخ,حالة المختبر,توقيت العينة,سبب عدم الإرسال\n';
+            const activeOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm);
+            activeOrders.forEach(o => {
+                const pName = (o.patientName||'').replace(/,/g, ' '); const dName = (o.doctorName||'').replace(/,/g, ' '); const wName = (o.ward||'').replace(/,/g, ' '); const oDate = o.orderDate || '';
+                let labStatus = ''; if(o.status === 'confirmed') labStatus = 'تم الاستلام'; else if(o.status === 'rejected') labStatus = 'لم تستلم'; else if(o.status === 'not_sent' || o.status === 'doctor_refused') labStatus = 'لم ترسل'; else labStatus = 'بانتظار الوصول';
+                let timing = ''; if(o.sampleTiming === 'before') timing = 'قبل المضاد'; else if(o.sampleTiming === 'after') timing = 'بعد المضاد'; else if(o.sampleTiming === 'unknown') timing = 'غير معلوم';
+                let reason = ''; if(o.status === 'not_sent' || o.status === 'doctor_refused') {
+                    if(o.notSentReason === 'doctor_refused') reason = 'رفض الطبيب'; else if(o.notSentReason === 'no_tools') reason = 'عدم توفر أدوات ' + (o.notSentDetails||''); else if(o.notSentReason === 'no_service') reason = 'عدم توفر خدمة ' + (o.notSentDetails||''); else if(o.notSentReason === 'other') reason = 'أخرى ' + (o.notSentDetails||'');
+                }
+                csv += `${pName},${dName},${wName},${oDate},${labStatus},${timing},${reason}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob);
+            const link = document.createElement("a"); link.href = url; link.setAttribute("download", `MeroTrak_Export_${getLocalDateString()}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        };
+
+        window.toggleAddSampleStatus = () => { const val = document.getElementById('l_sampleStatus').value; document.getElementById('addReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('l_noSampleReason').value = ''; window.toggleAddReasonDetails(); } };
+        window.toggleAddReasonDetails = () => { const val = document.getElementById('l_noSampleReason').value; document.getElementById('addToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('addServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('addOtherBlock').classList.toggle('d-none', val !== 'other'); };
+        window.toggleEditSampleStatus = () => { const val = document.getElementById('edit_l_sampleStatus').value; document.getElementById('editReasonsBlock').classList.toggle('d-none', val !== 'not_sent');
+            if (val !== 'not_sent') { document.getElementById('edit_l_noSampleReason').value = ''; window.toggleEditReasonDetails(); } };
+        window.toggleEditReasonDetails = () => { const val = document.getElementById('edit_l_noSampleReason').value;
+            document.getElementById('editToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('editServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('editOtherBlock').classList.toggle('d-none', val !== 'other'); };
+
+        function askPrompt(title, text, type = 'password') { return new Promise(resolve => { document.getElementById('promptTitle').innerText = title; document.getElementById('promptText').innerText = text; const input = document.getElementById('promptInput'); input.type = type; input.value = ''; const btnConfirm = document.getElementById('promptConfirmBtn'); const btnCancel = document.getElementById('promptCancelBtn'); const cleanup = () => { btnConfirm.onclick = null; btnCancel.onclick = null; input.onkeyup = null; promptModal.hide(); }; btnConfirm.onclick = () => { resolve(input.value); cleanup(); }; btnCancel.onclick = () => { resolve(null); cleanup(); }; input.onkeyup = (e) => { if(e.key === 'Enter') { resolve(input.value); cleanup(); } }; promptModal.show(); setTimeout(() => input.focus(), 500); }); }
+        function showAlert(title, text, isSuccess = true) { return new Promise(resolve => { document.getElementById('alertTitle').innerText = title; document.getElementById('alertText').innerText = text; const icon = document.getElementById('alertIcon'); const btn = document.getElementById('alertOkBtn'); if(isSuccess) { icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>'; btn.className = 'btn btn-success w-100 fw-bold'; } else { icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>'; btn.className = 'btn btn-danger w-100 fw-bold'; } const cleanup = () => { btn.onclick = null; alertModal.hide(); }; btn.onclick = () => { resolve(); cleanup(); }; alertModal.show(); }); }
+        function askConfirm(title, text) { return new Promise(resolve => { document.getElementById('confirmTitle').innerText = title; document.getElementById('confirmText').innerText = text; const btnOk = document.getElementById('confirmOkBtn'); const btnCancel = document.getElementById('confirmCancelBtn'); const cleanup = () => { btnOk.onclick = null; btnCancel.onclick = null; confirmModal.hide(); }; btnOk.onclick = () => { resolve(true); cleanup(); }; btnCancel.onclick = () => { resolve(false); cleanup(); }; confirmModal.show(); }); }
+
+        window.switchTab = (tabId, element) => { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active'); element.classList.add('active'); if (tabId === 'tab-stats' && isAdminUnlocked) window.loadAnalytics(); };
+        window.toggleSection = (contentId, chevronId) => { const content = document.getElementById(contentId);
+            const chevron = document.getElementById(chevronId); if (content.classList.contains('d-none')) { content.classList.remove('d-none'); chevron.classList.remove('rotated'); } else { content.classList.add('d-none'); chevron.classList.add('rotated'); } };
+
+        window.toggleReportInputs = () => { const type = document.getElementById('reportType').value; if (type === 'monthly') { document.getElementById('monthlyInputContainer').classList.remove('d-none'); document.getElementById('yearlyInputContainer').classList.add('d-none'); } else { document.getElementById('monthlyInputContainer').classList.add('d-none');
+            document.getElementById('yearlyInputContainer').classList.remove('d-none'); } window.loadAnalytics(); };
+
+        onSnapshot(settingsRef, (docSnap) => { 
+            if (docSnap.exists()) { 
+                let data = docSnap.data();
+                labPasscode = data.passcode || "1234"; 
+                systemAdminPass = data.adminPass || "admin123"; 
+                settingsPasscode = data.settingsPass || "414423";
+                if(data.wards && Array.isArray(data.wards)) { wardsList = data.wards; } else { wardsList = defaultWards; }
+            } else { wardsList = defaultWards; }
+            renderWardsSelect();
+        }, (error) => { console.error("Settings error:", error); });
+
+        document.getElementById('legacyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let user;
+            try { user = await ensureAnonymousUser(); } catch (authError) { await showAlert('خطأ في المصادقة', 'عذراً، فشل الاتصال بخادم الجلسة. التفاصيل: ' + authError.message, false); return; }
+            try {
+                let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
+                const sStatus = document.getElementById('l_sampleStatus').value;
+                if (!sStatus) { await showAlert('خطأ', 'يرجى اختيار حالة العينة.', false); return; }
+
+                if (sStatus === 'sent_before') { sampleTiming = 'before'; } 
+                else if (sStatus === 'sent_after') { sampleTiming = 'after'; } 
+                else if (sStatus === 'sent_unknown') { sampleTiming = 'unknown'; } 
+                else if (sStatus === 'not_sent') {
+                    status = 'not_sent'; notSentReason = document.getElementById('l_noSampleReason').value;
+                    if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار سبب عدم إرسال العينة.', false); return; }
+                    if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('l_sampleType').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى إدخال نوع العينة.', false); return; } } 
+                    else if (notSentReason === 'no_service') { let timing = document.getElementById('l_serviceTiming').value; let hours = document.getElementById('l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'يرجى تحديد وقت الطلب.', false); return; } notSentDetails = timing + ' (الساعة: ' + hours + ')'; } 
+                    else if (notSentReason === 'other') { notSentDetails = document.getElementById('l_otherReason').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة السبب التوضيحي.', false); return; } }
+                }
+
+                await addDoc(ordersRef, { 
+                    patientName: document.getElementById('l_patientName').value.trim(), 
+                    doctorName: document.getElementById('l_doctorName').value.trim(), 
+                    ward: document.getElementById('l_ward').value, 
+                    orderDate: document.getElementById('l_orderDate').value, 
+                    status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails,
+                    isDeleted: false, isSmartForm: false, submitterId: currentDeviceId, createdAt: serverTimestamp() 
+                });
+
+                document.getElementById('legacyForm').reset(); document.getElementById('l_orderDate').value = getLocalDateString(); window.toggleAddSampleStatus(); 
+                await showAlert('نجاح', 'تم إرسال الطلب بنجاح!');
+            } catch (err) { await showAlert('خطأ في الإضافة', err.message, false); }
+        });
+
+        window.deleteOrder = async (id) => {
+            const confirmed = await askConfirm('تأكيد الحذف', 'هل أنت متأكد من رغبتك في إخفاء هذا الطلب نهائياً من السجل؟');
+            if (confirmed) {
+                try { await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true }); await showAlert('تم الحذف', 'تم حذف الطلب بنجاح.', true); } 
+                catch (e) { await showAlert('مرفوض', 'عذراً، انتهت مدة التعديل أو لا تملك الصلاحية.', false); }
+            }
+        };
+
+        const q = query(ordersRef, orderBy("createdAt", "desc"));
+        
+        onSnapshot(q, (snapshot) => { 
+            allOrders = []; snapshot.forEach((docSnap) => { allOrders.push({ id: docSnap.id, ...docSnap.data() }); }); 
+            allOrders.sort((a, b) => {
+                let timeA = new Date(); let timeB = new Date();
+                if (a.createdAt && typeof a.createdAt.toDate === 'function') timeA = a.createdAt.toDate(); else if (a.createdAt) timeA = new Date(a.createdAt); else if (a.orderDate) timeA = new Date(a.orderDate);
+                if (b.createdAt && typeof b.createdAt.toDate === 'function') timeB = b.createdAt.toDate(); else if (b.createdAt) timeB = new Date(b.createdAt); else if (b.orderDate) timeB = new Date(b.orderDate);
+                return timeB - timeA;
+            });
+            window.renderMainOrders(); if(isLabLoggedIn) window.renderLabInbox(); window.loadAnalytics();
+        }, (error) => { document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">حدث خطأ في تحميل السجل.</div>'; });
+
+        onAuthStateChanged(auth, (user) => { if(user) window.renderMainOrders(); });
+
+        window.renderMainOrders = () => {
+            const searchVal = String(document.getElementById('searchInput').value || '').toLowerCase();
+            const wardVal = String(document.getElementById('wardFilter').value || '');
+            const sDate = document.getElementById('startDateFilter').value; const eDate = document.getElementById('endDateFilter').value; const todayStr = getLocalDateString();
+            let isSearching = searchVal || wardVal || sDate || eDate;
+
+            const filtered = allOrders.filter(o => {
+                if (!o || o.isDeleted || o.isSmartForm) return false; 
+                const pName = String(o.patientName || '').toLowerCase(); const dName = String(o.doctorName || '').toLowerCase(); const wName = String(o.ward || ''); const oDate = String(o.orderDate || '');
+                const matchName = pName.includes(searchVal) || dName.includes(searchVal); const matchWard = wardVal ? wName === wardVal : true;
+                let matchDate = true;
+                if (sDate && eDate) matchDate = oDate >= sDate && oDate <= eDate; else if (sDate) matchDate = oDate >= sDate; else if (eDate) matchDate = oDate <= eDate; else if (!isSearching) matchDate = (oDate === todayStr); 
+                return matchName && matchWard && matchDate;
+            });
+
+            const cont = document.getElementById('ordersContainer');
+            if (filtered.length === 0) { cont.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد طلبات للعرض</div>'; return; }
+
+            cont.innerHTML = filtered.map(o => {
+                const pName = escapeHTML(o.patientName || 'بدون اسم'); const dName = escapeHTML(o.doctorName || 'غير محدد'); const wName = escapeHTML(o.ward || 'غير محدد'); const oDate = escapeHTML(o.orderDate || '');
+                const isNotSent = (o.status === 'not_sent' || o.status === 'doctor_refused');
+                let badge = o.status === 'confirmed' ? '✅ إستُلمت العينة' : o.status === 'rejected' ? '❌ لم تُستلم العينة' : isNotSent ? '🚫 لم ترسل العينة' : '⏳ بانتظار وصول العينة';
+                let borderCol = o.status === 'confirmed' ? 'border-success-custom' : (o.status === 'rejected' || isNotSent) ? 'border-danger-custom' : 'border-warning-custom';
+                let textCol = o.status === 'confirmed' ? 'text-success' : (o.status === 'rejected' || isNotSent) ? 'text-danger' : 'text-warning text-dark';
+                
+                let timingBadge = '';
+                if (o.sampleTiming === 'before') timingBadge = '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary fs-8">عينة قبل المضاد</span>';
+                else if (o.sampleTiming === 'after') timingBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary fs-8">عينة بعد المضاد</span>';
+                else if (o.sampleTiming === 'unknown') timingBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info fs-8">توقيت العينة مجهول</span>';
+
+                let orderTime = new Date();
+                if (o.createdAt && typeof o.createdAt.toDate === 'function') { orderTime = o.createdAt.toDate(); } else if (o.createdAt) { orderTime = new Date(o.createdAt); }
+                const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
+                const isMyOrder = (o.submitterId === currentDeviceId);
+                const canEditOrDelete = isMyOrder && (o.status === 'pending' || o.status === 'not_sent') && (hoursDiff < 24);
+
+                let reasonHtml = '';
+                if (isNotSent) {
+                    let reasonText = 'رفض الطبيب ارسال عينة زرع'; let detailsText = '';
+                    if (o.notSentReason === 'no_tools') { reasonText = 'عدم توفر الأدوات'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
+                    else if (o.notSentReason === 'no_service') { reasonText = 'عدم توفر الخدمة'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
+                    else if (o.notSentReason === 'other') { reasonText = 'أخرى'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
+                    reasonHtml = `<div class="fs-8 text-danger mt-2 fw-bold bg-danger bg-opacity-10 p-2 rounded border border-danger border-opacity-25"><i class="bi bi-info-circle-fill me-1"></i>السبب: ${reasonText} ${detailsText}</div>`;
+                }
+
+                let labUpdateIcon = isNotSent ? '' : `<i class="bi bi-pencil-fill text-dark ms-2 icon-btn border bg-white rounded shadow-sm" onclick="window.openLabModal('${o.id}')" title="تحديث حالة المختبر"></i>`;
+
+                return `
+                    <div class="order-card-compact ${borderCol}">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                            <h6 class="fw-bold mb-0 text-primary fs-6"><i class="bi bi-person-fill text-muted me-1"></i>${pName}</h6>
+                            <div class="d-flex gap-2">
+                                ${canEditOrDelete ?
+                                `<i class="bi bi-pencil-square text-primary icon-btn bg-light rounded border" onclick="window.openLegacyEdit('${o.id}')" title="تعديل"></i>
+                                 <i class="bi bi-trash-fill text-danger icon-btn bg-light rounded border" onclick="window.deleteOrder('${o.id}')" title="حذف"></i>` : ''}
+                            </div>
+                        </div>
+                        <div class="row g-2 fs-7 text-dark fw-bold mb-2"><div class="col-6"><i class="bi bi-capsule text-muted me-1"></i> د.
+                        ${dName}</div><div class="col-6"><i class="bi bi-hospital text-muted me-1"></i> ${wName}</div><div class="col-6"><i class="bi bi-calendar3 text-muted me-1"></i> ${oDate}</div><div class="col-6">${timingBadge}</div></div>
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mt-1 border">
+                            <div class="fs-7 fw-bold ${textCol}">
+                                ${badge} 
+                                ${labUpdateIcon}
+                            </div>
+                            <div class="fs-8 text-muted">${isMyOrder ? '<i class="bi bi-shield-check text-success"></i> طلبك الخاص' : ''}</div>
+                        </div>
+                        ${reasonHtml}
+                    </div>`;
+            }).join('');
+        };
+
+        window.resetFilters = () => { ['searchInput', 'wardFilter', 'startDateFilter', 'endDateFilter'].forEach(id => document.getElementById(id).value = ''); window.renderMainOrders(); };
+
+        window.openLegacyEdit = (id) => { 
+            const o = allOrders.find(x => x.id === id);
+            if (!o) return;
+            document.getElementById('edit_l_id').value = id; 
+            document.getElementById('edit_l_patient').value = o.patientName || ''; 
+            document.getElementById('edit_l_doctor').value = o.doctorName || ''; 
+            document.getElementById('edit_l_ward').value = o.ward || ''; 
+            document.getElementById('edit_l_date').value = o.orderDate || getLocalDateString(); 
+            
+            const isNotSent = (o.status === 'not_sent' || o.status === 'doctor_refused');
+            if (isNotSent) document.getElementById('edit_l_sampleStatus').value = 'not_sent'; 
+            else if (o.sampleTiming === 'before') document.getElementById('edit_l_sampleStatus').value = 'sent_before';
+            else if (o.sampleTiming === 'after') document.getElementById('edit_l_sampleStatus').value = 'sent_after'; 
+            else if (o.sampleTiming === 'unknown') document.getElementById('edit_l_sampleStatus').value = 'sent_unknown'; 
+            else document.getElementById('edit_l_sampleStatus').value = 'sent_before';
+
+            window.toggleEditSampleStatus();
+            if (isNotSent) {
+                const reason = o.notSentReason || 'doctor_refused'; 
+                document.getElementById('edit_l_noSampleReason').value = reason; 
+                window.toggleEditReasonDetails();
+                if (reason === 'no_tools') document.getElementById('edit_l_sampleType').value = o.notSentDetails || '';
+                if (reason === 'no_service') { 
+                    if(o.notSentDetails && o.notSentDetails.includes('(الساعة:')) { 
+                        let parts = o.notSentDetails.split('(الساعة:'); document.getElementById('edit_l_serviceTiming').value = parts[0].trim(); document.getElementById('edit_l_serviceTime').value = parts[1].replace(')','').trim(); 
+                    } else { document.getElementById('edit_l_serviceTiming').value = o.notSentDetails || 'خلال الدوام الرسمي'; } 
+                }
+                if (reason === 'other') document.getElementById('edit_l_otherReason').value = o.notSentDetails || '';
+            }
+            legacyEditModal.show(); 
+        };
+
+        document.getElementById('legacyEditForm').addEventListener('submit', async (e) => { 
+            e.preventDefault(); const id = document.getElementById('edit_l_id').value; 
+            let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
+            const sStatus = document.getElementById('edit_l_sampleStatus').value;
+            if (!sStatus) { await showAlert('خطأ', 'يرجى اختيار حالة العينة.', false); return; }
+            if (sStatus === 'sent_before') { sampleTiming = 'before'; } else if (sStatus === 'sent_after') { sampleTiming = 'after'; } else if (sStatus === 'sent_unknown') { sampleTiming = 'unknown'; }
+            else if (sStatus === 'not_sent') { 
+                status = 'not_sent'; notSentReason = document.getElementById('edit_l_noSampleReason').value; 
+                if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار السبب.', false); return; } 
+                if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('edit_l_sampleType').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى الكتابة.', false); return; } 
+                } else if (notSentReason === 'no_service') { let timing = document.getElementById('edit_l_serviceTiming').value; let hours = document.getElementById('edit_l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'حدد الوقت.', false); return; } notSentDetails = timing + ' (الساعة: ' + hours + ')';
+                } else if (notSentReason === 'other') { notSentDetails = document.getElementById('edit_l_otherReason').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى التوضيح.', false); return; } } 
+            }
+
+            try {
+                await updateDoc(doc(db, "meropenem_orders", id), { 
+                    patientName: document.getElementById('edit_l_patient').value.trim(), doctorName: document.getElementById('edit_l_doctor').value.trim(), ward: document.getElementById('edit_l_ward').value, orderDate: document.getElementById('edit_l_date').value, 
+                    status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails
+                }); 
+                legacyEditModal.hide(); await showAlert('نجاح', 'تم تحديث البيانات!');
+            } catch (err) { await showAlert('مرفوض', 'تم رفض العملية من السيرفر! عذراً، لا تملك الصلاحية أو انتهت مدة التعديل.', false); }
+        });
+
+        window.openLabModal = (id) => {
+            askPrompt('المختبر', 'أدخل رمز المختبر لتعديل الحالة:').then(pass => {
+                if(pass !== labPasscode) { if(pass!==null) showAlert('مرفوض', 'الرمز خاطئ', false); return; }
+                activeActionId = id; labStatusModal.show();
+            });
+        };
+
+        window.applyLabStatus = async (status) => { 
+            try { await updateDoc(doc(db, "meropenem_orders", activeActionId), { status: status, updatedAt: serverTimestamp() }); labStatusModal.hide(); showAlert('نجاح', 'تم تحديث حالة العينة بنجاح'); } catch(e) { showAlert('خطأ', 'فشل التحديث من السيرفر: ' + e.message, false); }
+        };
+        
+        window.changeLabPasscode = () => {
+            askPrompt('تغيير الرمز', 'أدخل رمز المختبر الحالي:').then(async old => {
+                if(old === null) return;
+                if(old !== labPasscode) { await showAlert('مرفوض', 'الرمز الحالي خاطئ', false); return; }
+                const n = await askPrompt('رمز جديد', 'الرمز الجديد:', 'text');
+                if(n) { await setDoc(settingsRef, { passcode: n.trim() }, { merge: true }); showAlert('نجاح', 'تم تغيير رمز المختبر!'); }
+            });
+        };
+
+        window.changeAdminPasscode = () => {
+            askPrompt('تغيير الرمز', 'أدخل رمز الإدارة الحالي:').then(async old => {
+                if(old === null) return;
+                if(old !== systemAdminPass) { await showAlert('مرفوض', 'الرمز الحالي خاطئ', false); return; }
+                const n = await askPrompt('رمز جديد', 'الرمز الجديد:', 'text');
+                if(n) { await setDoc(settingsRef, { adminPass: n.trim() }, { merge: true }); systemAdminPass = n.trim(); showAlert('نجاح', 'تم تغيير رمز الإدارة!'); }
+            });
+        };
+
+        window.loginLab = () => {
+            askPrompt('دخول المختبر', 'أدخل رمز المختبر:').then(pass => {
+                if(pass !== labPasscode) { if(pass!==null) showAlert('مرفوض', 'الرمز خاطئ', false); return; }
+                isLabLoggedIn = true; document.getElementById('lab-login-section').classList.add('d-none'); document.getElementById('lab-dashboard-section').classList.remove('d-none'); window.renderLabInbox();
+            });
+        };
+
+        window.logoutLab = () => { isLabLoggedIn = false; document.getElementById('lab-dashboard-section').classList.add('d-none'); document.getElementById('lab-login-section').classList.remove('d-none'); };
+
+        window.renderLabInbox = () => { 
+            const cont = document.getElementById('labInboxContainer');
+            let pendingOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && o.status === 'pending');
+            if (pendingOrders.length === 0) { cont.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-check-circle fs-1"></i><p>لا توجد مهام جديدة.</p></div>'; return; } 
+            
+            cont.innerHTML = pendingOrders.map(o => { 
+                return `<div class="card p-3 shadow-sm border mb-2"><div class="d-flex justify-content-between align-items-center mb-2"><h6 class="fw-bold mb-0 text-primary">${escapeHTML(o.patientName)}</h6><span class="badge bg-light text-dark border">${escapeHTML(o.ward)}</span></div><div class="fs-7 text-muted mb-2">تاريخ: ${escapeHTML(o.orderDate)} | د. ${escapeHTML(o.doctorName)}</div><div class="d-flex gap-2 mt-3"><button class="btn btn-success btn-sm flex-fill fw-bold" onclick="window.updateLabInbox('${o.id}', 'confirmed')">إستُلمت العينة ✅</button><button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="window.updateLabInbox('${o.id}', 'rejected')">لم تُستلم ❌</button></div></div>`; 
+            }).join(''); 
+        };
+
+        window.updateLabInbox = async (id, status) => { 
+            try { await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: serverTimestamp() }); } catch (e) { await showAlert('خطأ', e.message, false); } 
+        };
+
+        window.unlockAdminStats = () => {
+            askPrompt('كلمة مرور الإدارة', 'يرجى إدخال كلمة المرور للوصول إلى الإحصائيات السرية:').then(pass => {
+                if (pass === null) return;
+                if (pass === systemAdminPass) { isAdminUnlocked = true; document.getElementById('adminLockedView').classList.add('d-none'); document.getElementById('adminUnlockedView').classList.remove('d-none'); window.loadAnalytics(); } 
+                else { showAlert('مرفوض', 'كلمة المرور خاطئة', false); }
+            });
+        };
+
+        window.lockAdminStats = () => { isAdminUnlocked = false; document.getElementById('adminLockedView').classList.remove('d-none'); document.getElementById('adminUnlockedView').classList.add('d-none'); };
+
+        window.loadAnalytics = () => {
+            const reportType = document.getElementById('reportType').value;
+            let filteredOrders = [];
+
+            if (reportType === 'monthly') {
+                const selectedMonth = document.getElementById('reportMonth').value; // YYYY-MM
+                if (!selectedMonth) return;
+                filteredOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && o.orderDate && String(o.orderDate).startsWith(selectedMonth));
+            } else {
+                const selectedYear = document.getElementById('reportYear').value; // YYYY
+                if (!selectedYear) return;
+                filteredOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && o.orderDate && String(o.orderDate).startsWith(selectedYear));
+            }
+
+            const total = filteredOrders.length;
+            const confirmed = filteredOrders.filter(o => o.status === 'confirmed').length;
+            const rejected = filteredOrders.filter(o => o.status === 'rejected').length;
+            const pending = filteredOrders.filter(o => o.status === 'pending').length;
+            const notSentCount = filteredOrders.filter(o => o.status === 'not_sent' || o.status === 'doctor_refused').length;
+
+            document.getElementById('totalOrders').innerText = total;
+            document.getElementById('confirmedCount').innerHTML = `${confirmed} <span class="fs-7 text-muted">(${total ? Math.round((confirmed/total)*100) : 0}%)</span>`;
+            document.getElementById('rejectedCount').innerHTML = `${rejected} <span class="fs-7 text-muted">(${total ? Math.round((rejected/total)*100) : 0}%)</span>`;
+            document.getElementById('pendingCount').innerHTML = `${pending} <span class="fs-7 text-muted">(${total ? Math.round((pending/total)*100) : 0}%)</span>`;
+            document.getElementById('docRefusedCount').innerHTML = `${notSentCount} <span class="fs-7 text-muted">(${total ? Math.round((notSentCount/total)*100) : 0}%)</span>`;
+
+            const wardsCount = {}; const doctorsCount = {};
+            const doctorsDoctorRefusedCount = {}; const doctorsNotSentCount = {}; const doctorsRejectedCount = {};
+            const refusalReasonsCount = { doctor_refused: 0, no_tools: 0, no_service: 0, other: 0 };
+            const timingCount = { before: 0, after: 0, unknown: 0 };
+            
+            const serviceTimingCounts = { 'خلال الدوام الرسمي': 0, 'بعد الدوام الرسمي': 0, 'عطلة': 0 };
+            const missingToolsCounts = {};
+
+            filteredOrders.forEach(o => {
+                const w = String(o.ward || 'أخرى').trim(); wardsCount[w] = (wardsCount[w] || 0) + 1;
+                const docName = String(o.doctorName || 'غير محدد').trim(); doctorsCount[docName] = (doctorsCount[docName] || 0) + 1;
+                
+                if (o.status === 'not_sent' || o.status === 'doctor_refused') {
+                    doctorsNotSentCount[docName] = (doctorsNotSentCount[docName] || 0) + 1;
+                    if (o.status === 'doctor_refused' || o.notSentReason === 'doctor_refused') { doctorsDoctorRefusedCount[docName] = (doctorsDoctorRefusedCount[docName] || 0) + 1; }
+                    const reason = o.notSentReason || 'doctor_refused'; if(refusalReasonsCount[reason] !== undefined) refusalReasonsCount[reason]++; else refusalReasonsCount['other']++; 
+
+                    if (o.notSentReason === 'no_service' && o.notSentDetails) {
+                        if (o.notSentDetails.includes('خلال الدوام الرسمي')) serviceTimingCounts['خلال الدوام الرسمي']++;
+                        else if (o.notSentDetails.includes('بعد الدوام الرسمي')) serviceTimingCounts['بعد الدوام الرسمي']++;
+                        else if (o.notSentDetails.includes('عطلة')) serviceTimingCounts['عطلة']++;
+                    }
+                    if (o.notSentReason === 'no_tools' && o.notSentDetails) {
+                        let toolName = o.notSentDetails.trim();
+                        missingToolsCounts[toolName] = (missingToolsCounts[toolName] || 0) + 1;
+                    }
+                } else {
+                    if (o.sampleTiming === 'before') timingCount.before++; else if (o.sampleTiming === 'after') timingCount.after++; else if (o.sampleTiming === 'unknown') timingCount.unknown++;
+                }
+                if (o.status === 'rejected') { doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1; }
+            });
+
+            updatePublicCharts(confirmed, rejected, pending, notSentCount, wardsCount, refusalReasonsCount, timingCount);
+
+            if (isAdminUnlocked) {
+                updateAdminCharts(doctorsCount);
+                renderRefusalTable(doctorsCount, doctorsDoctorRefusedCount); 
+                renderCombinedTable(doctorsCount, doctorsRejectedCount, doctorsNotSentCount); 
+                updateAdvancedAdminCharts(serviceTimingCounts, missingToolsCounts);
+            }
+        };
+
+        function renderRefusalTable(doctorsTotal, doctorsDoctorRefused) {
+            const tbody = document.getElementById('doctorsRefusalBody');
+            const docList = Object.keys(doctorsTotal);
+            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>'; return; }
+            docList.sort((a, b) => (doctorsDoctorRefused[b] || 0) - (doctorsDoctorRefused[a] || 0));
+            tbody.innerHTML = docList.map(docName => {
+                const total = doctorsTotal[docName] || 0; const refused = doctorsDoctorRefused[docName] || 0; const ratio = total ? Math.round((refused / total) * 100) : 0;
+                let badgeColor = ratio > 50 ? 'bg-danger' : ratio > 20 ? 'bg-warning text-dark' : 'bg-success';
+                return `<tr><td class="px-4"><strong>د. ${escapeHTML(docName)}</strong></td><td class="text-center text-danger fw-bold">${refused}</td><td class="text-center">${total}</td><td class="text-center"><span class="badge ${badgeColor} px-2 py-1 rounded-pill">${ratio}%</span></td></tr>`;
+            }).join('');
+        }
+
+        function renderCombinedTable(doctorsTotal, doctorsRejected, doctorsNotSent) {
+            const tbody = document.getElementById('doctorsCombinedBody');
+            const docList = Object.keys(doctorsTotal);
+            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>'; return; }
+            docList.sort((a, b) => ((doctorsRejected[b] || 0) + (doctorsNotSent[b] || 0)) - ((doctorsRejected[a] || 0) + (doctorsNotSent[a] || 0)));
+            tbody.innerHTML = docList.map(docName => {
+                const total = doctorsTotal[docName] || 0; const rejected = doctorsRejected[docName] || 0; const notSent = doctorsNotSent[docName] || 0;
+                const combined = rejected + notSent; const ratio = total ? Math.round((combined / total) * 100) : 0;
+                let badgeColor = ratio > 50 ? 'bg-danger' : ratio > 20 ? 'bg-warning text-dark' : 'bg-success';
+                return `<tr><td class="px-4"><strong>د. ${escapeHTML(docName)}</strong></td><td class="text-center text-danger fw-bold">${rejected}</td><td class="text-center text-secondary fw-bold">${notSent}</td><td class="text-center text-dark fw-bold fs-6">${combined}</td><td class="text-center">${total}</td><td class="text-center"><span class="badge ${badgeColor} px-2 py-1 rounded-pill">${ratio}%</span></td></tr>`;
+            }).join('');
+        }
+
+        function updatePublicCharts(confirmed, rejected, pending, notSentCount, wardsCount, reasonsCount, timingCount) {
+            Chart.defaults.font.family = 'Cairo';
+            const pieCtx = document.getElementById('statusPieChart').getContext('2d');
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: { labels: ['إستُلمت ✅', 'لم تُستلم ❌', 'بانتظار وصول ⏳', 'لم تُرسل 🚫'], datasets: [{ data: [confirmed, rejected, pending, notSentCount], backgroundColor: ['#10b981', '#f43f5e', '#f59e0b', '#64748b'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+            });
+
+            const reasonsCtx = document.getElementById('reasonsPieChart').getContext('2d');
+            if (reasonsPieChartInstance) reasonsPieChartInstance.destroy();
+            reasonsPieChartInstance = new Chart(reasonsCtx, {
+                type: 'pie',
+                data: { labels: ['رفض الطبيب', 'نقص أدوات', 'عدم توفر خدمة', 'أخرى'], datasets: [{ data: [reasonsCount.doctor_refused, reasonsCount.no_tools, reasonsCount.no_service, reasonsCount.other], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#6b7280'], borderWidth: 1 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+            });
+
+            const timingCtx = document.getElementById('timingPieChart').getContext('2d');
+            if (timingPieChartInstance) timingPieChartInstance.destroy();
+            timingPieChartInstance = new Chart(timingCtx, {
+                type: 'pie',
+                data: { labels: ['قبل المضاد', 'بعد المضاد', 'غير معلوم'], datasets: [{ data: [timingCount.before, timingCount.after, timingCount.unknown], backgroundColor: ['#84cc16', '#8b5cf6', '#0ea5e9'], borderWidth: 1 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+            });
+
+            const wardsKeys = Object.keys(wardsCount).length ? Object.keys(wardsCount) : ['لا يوجد']; const wardsValues = Object.values(wardsCount).length ? Object.values(wardsCount) : [0];
+            const wardsTotal = wardsValues.reduce((a, b) => a + b, 0);
+            document.getElementById('wardsChartWrapper').style.height = Math.max(250, wardsKeys.length * 40) + 'px';
+            const wardsCtx = document.getElementById('wardsBarChart').getContext('2d');
+            if (wardsChartInstance) wardsChartInstance.destroy();
+            wardsChartInstance = new Chart(wardsCtx, {
+                type: 'bar',
+                data: { labels: wardsKeys, datasets: [{ label: 'الطلبات', data: wardsValues, backgroundColor: '#3b82f6', borderRadius: 4 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return ` ${context.raw} طلب (${wardsTotal > 0 ? Math.round((context.raw / wardsTotal) * 100) : 0}%)`; } } } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { ticks: { autoSkip: false } } } }
+            });
+        }
+
+        function updateAdminCharts(doctorsCount) {
+            const docsKeys = Object.keys(doctorsCount).length ? Object.keys(doctorsCount) : ['لا يوجد']; const docsValues = Object.values(doctorsCount).length ? Object.values(doctorsCount) : [0];
+            const docsTotal = docsValues.reduce((a, b) => a + b, 0);
+            document.getElementById('docsChartWrapper').style.height = Math.max(300, docsKeys.length * 40) + 'px';
+            const docsCtx = document.getElementById('doctorsBarChart').getContext('2d');
+            if (doctorsChartInstance) doctorsChartInstance.destroy();
+            doctorsChartInstance = new Chart(docsCtx, {
+                type: 'bar',
+                data: { labels: docsKeys, datasets: [{ label: 'الطلبات', data: docsValues, backgroundColor: '#14b8a6', borderRadius: 4 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return ` ${context.raw} طلب (${docsTotal > 0 ? Math.round((context.raw / docsTotal) * 100) : 0}%)`; } } } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { ticks: { autoSkip: false } } } }
+            });
+        }
+
+        function updateAdvancedAdminCharts(serviceTimingCounts, missingToolsCounts) {
+            const serviceCtx = document.getElementById('serviceTimingChart').getContext('2d');
+            if (serviceTimingChartInstance) serviceTimingChartInstance.destroy();
+            serviceTimingChartInstance = new Chart(serviceCtx, {
+                type: 'doughnut',
+                data: { 
+                    labels: ['خلال الدوام', 'بعد الدوام', 'عطلة'], 
+                    datasets: [{ data: [serviceTimingCounts['خلال الدوام الرسمي'], serviceTimingCounts['بعد الدوام الرسمي'], serviceTimingCounts['عطلة']], backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444'], borderWidth: 0 }] 
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+            });
+
+            const toolsKeys = Object.keys(missingToolsCounts).length ? Object.keys(missingToolsCounts) : ['لا توجد بيانات'];
+            const toolsValues = Object.values(missingToolsCounts).length ? Object.values(missingToolsCounts) : [0];
+            const toolsCtx = document.getElementById('missingToolsChart').getContext('2d');
+            if (missingToolsChartInstance) missingToolsChartInstance.destroy();
+            missingToolsChartInstance = new Chart(toolsCtx, {
+                type: 'bar',
+                data: { labels: toolsKeys, datasets: [{ label: 'مرات النقص', data: toolsValues, backgroundColor: '#8b5cf6', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { stepSize: 1 } }, y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', () => window.renderMainOrders()); 
+        document.getElementById('wardFilter').addEventListener('change', () => window.renderMainOrders()); 
+        document.getElementById('startDateFilter').addEventListener('change', () => window.renderMainOrders()); 
+        document.getElementById('endDateFilter').addEventListener('change', () => window.renderMainOrders());
+    </script>
+</body>
+</html>
